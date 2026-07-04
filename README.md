@@ -1,27 +1,26 @@
-# FichaFest
+# FichaFest Small
 
-Sistema desktop em Java para venda e emissao de fichas em eventos, como festas juninas, quermesses, caminhadas, confraternizacoes e cantinas temporarias.
+Sistema desktop simples, feito em Java/Swing, para emissao de fichas em eventos.
 
-O sistema permite cadastrar produtos como cerveja, refrigerante, comida, brincadeiras e outros itens, realizar vendas rapidamente por botoes, registrar formas de pagamento, imprimir fichas/comprovantes e gerar fechamentos de caixa e relatorios de vendas.
+A proposta desta versao nao e ser um ERP completo. Ela existe para atender um fluxo direto: cadastrar a empresa, configurar a impressora, selecionar produtos em uma tela de venda rapida, registrar a forma de pagamento e emitir a ficha para entrega ao cliente.
 
-## Principais recursos
+## O que o sistema faz
 
-- Cadastro da empresa do evento.
-- Cadastro de clientes/pessoas.
-- Cadastro de grupos de produtos.
-- Cadastro de produtos e servicos com preco de venda.
-- Tela de venda rapida por botoes de produto.
-- Venda com multiplicador de quantidade.
-- Formas de pagamento: dinheiro, PIX, credito, debito, crediario e brinde.
+- Cadastro basico da empresa do evento.
+- Cadastro de produtos que aparecerao como botoes na tela de venda.
+- Venda rapida por clique nos produtos.
+- Multiplicador de quantidade para adicionar varias fichas do mesmo item.
+- Identificacao opcional do cliente.
+- Formas de pagamento: dinheiro, PIX, credito, brinde e crediario.
 - Calculo de total e troco.
-- Impressao de fichas em impressora configuravel.
-- Reimpressao de venda.
-- Fechamento por periodo de vendas.
-- Relatorio por forma de pagamento.
-- Relatorio por produto vendido.
-- Controle de crediario/fiado.
-- Backup dos dados.
-- Relatorios JasperReports incluidos em `src/main/resources/reports`.
+- Impressao da ficha em impressora configurada.
+- Reimpressao de ficha pelo numero da venda.
+- Fechamento simples por intervalo de vendas.
+- Impressao de resumo por pagamentos, produtos vendidos e crediario.
+
+## O que esta fora do escopo
+
+Este projeto e intencionalmente enxuto. Ele nao deve ser tratado como sistema completo de gestao comercial, fiscal, estoque ou financeiro. Existem classes, telas e relatorios herdados de uma base maior, mas a versao atual esta voltada principalmente para a emissao de ficha em eventos.
 
 ## Tecnologias
 
@@ -33,11 +32,11 @@ O sistema permite cadastrar produtos como cerveja, refrigerante, comida, brincad
 - Lombok
 - JTattoo Look and Feel
 - ZXing
-- Conectores MySQL e PostgreSQL disponiveis no projeto
+- Bibliotecas locais em `lib/`
 
-Por padrao, a aplicacao usa persistencia em arquivos locais, atraves dos DAOs em `src/main/java/br/com/qualix/*/dao`.
+Por padrao, a persistencia usada pela aplicacao e em arquivos locais.
 
-## Estrutura do projeto
+## Estrutura principal
 
 ```text
 .
@@ -45,27 +44,58 @@ Por padrao, a aplicacao usa persistencia em arquivos locais, atraves dos DAOs em
 |-- src/main/java/br/com/qualix  # Codigo-fonte da aplicacao
 |   |-- aaaMain                  # Inicializacao e tela principal
 |   |-- aaaConfig                # Configuracoes gerais
-|   |-- pessoa                   # Cadastro de pessoas/clientes/empresa
-|   |-- proserv                  # Produtos, grupos, pedidos e servicos
-|   |-- pequenoprincipe          # Telas de venda e fechamento
-|   |-- financeiro               # Pagamentos, contas e recibos
-|   |-- print                    # Impressao de fichas e relatorios
-|   |-- estoque                  # Controle/consulta de estoque
-|   `-- seguranca                # Backup
-|-- src/main/resources/assets    # Imagens, icones e fundos da interface
-|-- src/main/resources/reports   # Modelos de relatorios Jasper
+|   |-- pessoa                   # Cadastro da empresa e pessoas
+|   |-- proserv                  # Produtos e pedidos
+|   |-- pequenoprincipe          # Venda, ficha e fechamento simples
+|   |-- print                    # Impressao
+|   `-- database/dao/service     # Selecao dos DAOs usados
+|-- src/main/resources/assets    # Imagens e icones da interface
+|-- src/main/resources/reports   # Modelos JasperReports herdados
 |-- pom.xml                      # Configuracao Maven
 `-- nbactions.xml                # Acoes do NetBeans
 ```
 
-## Requisitos
+## Fluxo basico de uso
 
-- JDK 8 ou superior compativel com Java 8.
-- Maven instalado.
-- Sistema operacional com ambiente grafico, pois a aplicacao e desktop/Swing.
-- Impressora instalada no sistema operacional para emissao das fichas.
+1. Abrir o sistema.
+2. Cadastrar a empresa do evento.
+3. Configurar a impressora.
+4. Cadastrar ou ajustar os produtos que serao vendidos.
+5. Abrir a tela `Venda`.
+6. Selecionar os produtos pelos botoes.
+7. Informar a forma de pagamento.
+8. Finalizar a venda para gravar e imprimir a ficha.
+9. Ao final do periodo, usar o fechamento para conferir vendas e imprimir os resumos necessarios.
 
-Observacao: o projeto possui dependencias locais em `lib/`, usadas para componentes como campos numericos e notificacoes Swing. Mantenha essa pasta no repositorio ou no ambiente de build.
+## Impressao
+
+A impressora e selecionada em:
+
+```text
+Configuracoes > Selecionar Impressora
+```
+
+O sistema usa os servicos de impressao do Java (`javax.print`). O tamanho de bobina padrao fica nas configuracoes da aplicacao, com suporte a opcoes como 58mm, 80mm e 90mm.
+
+## Dados da aplicacao
+
+Os dados locais sao gravados por padrao em:
+
+```text
+C:\Qualix\sistema\small\
+```
+
+Esse caminho esta definido em:
+
+```text
+src/main/java/br/com/qualix/aaaConfig/Configuracoes.java
+```
+
+Os DAOs ativos sao baseados em arquivos e estao selecionados em:
+
+```text
+src/main/java/br/com/qualix/database/dao/service/DaoFactory.java
+```
 
 ## Como executar em desenvolvimento
 
@@ -83,101 +113,32 @@ Tambem e possivel abrir o projeto no NetBeans e executar a acao `run`, ja config
 mvn clean package
 ```
 
-O `pom.xml` configura a classe principal:
+A classe principal configurada no `pom.xml` e:
 
 ```text
 br.com.qualix.aaaMain.AInicioSistema
 ```
 
-E tambem configura o empacotamento com dependencias pelo `maven-assembly-plugin`.
-
-Depois do build, execute o JAR gerado em `target/`:
+Depois do build, execute o JAR gerado em `target/`. O nome esperado pelo empacotamento atual e semelhante a:
 
 ```bash
 java -jar target/SisteFacil-QSX-jar-with-dependencies.jar
 ```
 
-Dependendo da configuracao/local do build, o nome final do arquivo pode variar. Verifique os arquivos gerados dentro da pasta `target/`.
+Se o nome variar, confira os arquivos gerados na pasta `target/`.
 
-## Dados da aplicacao
+## Pontos importantes para manutencao
 
-Por padrao, os dados sao gravados em arquivos locais no caminho:
+- Entrada do sistema: `br.com.qualix.aaaMain.AInicioSistema`.
+- Tela principal: `br.com.qualix.aaaMain.FBackground5`.
+- Tela de venda/emissao de ficha: `br.com.qualix.pequenoprincipe.visao.FVenda`.
+- Configuracoes gerais e caminho dos dados: `br.com.qualix.aaaConfig.Configuracoes`.
+- Persistencia em arquivos: `br.com.qualix.database.dao.service.DaoFactory`.
+- Impressao de fichas e textos: classes em `br.com.qualix.print`.
 
-```text
-C:\Qualix\sistema\small\
-```
+## Observacoes
 
-Esse caminho esta definido em:
-
-```text
-src/main/java/br/com/qualix/aaaConfig/Configuracoes.java
-```
-
-Arquivos como produtos, pedidos, pessoas, contas e configuracoes sao criados usando os nomes/versionamentos definidos nessa mesma classe.
-
-## Fluxo basico de uso
-
-1. Abra o sistema.
-2. Cadastre a empresa do evento.
-3. Cadastre os grupos de produtos, se necessario.
-4. Cadastre os produtos que serao vendidos, por exemplo:
-   - Cerveja
-   - Refrigerante
-   - Pastel
-   - Cachorro-quente
-   - Brincadeira
-5. Acesse a tela de venda.
-6. Selecione os produtos pelos botoes.
-7. Informe a forma de pagamento.
-8. Finalize a venda para gravar e imprimir a ficha.
-9. Ao final do periodo, use o fechamento para conferir pagamentos, produtos vendidos e crediario.
-
-## Impressao
-
-A impressora e selecionada pelo menu:
-
-```text
-Configuracoes > Selecionar Impressora
-```
-
-O sistema usa os servicos de impressao do Java (`javax.print`) e permite configurar o tamanho da bobina, como 58mm, 80mm ou 90mm.
-
-## Relatorios e fechamento
-
-O sistema possui telas e modelos para:
-
-- Relatorio de vendas.
-- Relatorio de clientes por cidade.
-- Fechamento de caixa por intervalo de vendas.
-- Totalizacao por produto vendido.
-- Controle de crediario.
-- Impressao de fechamento para assinatura do responsavel.
-
-Os arquivos `.jrxml` ficam em:
-
-```text
-src/main/resources/reports
-```
-
-## Backup
-
-O menu `Backup` possui a opcao para gerar copia dos dados locais. Como a persistencia padrao e baseada em arquivos, recomenda-se manter uma rotina de backup da pasta de dados antes e depois de cada evento.
-
-## Observacoes para manutencao
-
-- A classe inicial do sistema e `br.com.qualix.aaaMain.AInicioSistema`.
-- A tela principal usada pela versao atual e `br.com.qualix.aaaMain.FBackground5`.
-- A tela de venda principal e `br.com.qualix.pequenoprincipe.visao.FVenda`.
-- Existe uma variante especifica para festa junina em `br.com.qualix.pequenoprincipe.visao.FVendaJunino`.
-- A configuracao de persistencia atual aponta para DAOs baseados em arquivos em `DaoFactory`.
-- O projeto contem formularios `.form` do NetBeans junto das telas Swing.
-
-## Status do build
-
-Foi feita uma tentativa de build local com:
-
-```bash
-mvn -DskipTests package
-```
-
-Neste ambiente, a execucao foi interrompida porque o Maven precisou baixar plugins do Maven Central e o acesso de rede estava bloqueado. Em um ambiente com internet ou cache Maven ja populado, use os comandos acima para compilar e gerar o JAR.
+- A pasta `lib/` deve ser mantida, pois contem dependencias locais usadas pelo Maven.
+- O projeto possui arquivos `.form` do NetBeans junto das telas Swing.
+- Ha conectores e relatorios herdados de versoes maiores, mas nem tudo faz parte do fluxo principal desta versao.
+- Antes de usar em um evento, teste a impressora, a bobina e a emissao de algumas fichas de exemplo.
